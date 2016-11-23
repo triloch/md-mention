@@ -16,38 +16,6 @@
 <body>
 <div ng-controller="AppCtrl" ng-cloak="" class="buttondemoBasicUsage" ng-app="MyApp">
   <md-content>
-  <div ng-controller="DemoCtrl as ctrl" layout="column" ng-cloak>
-    <md-content class="md-padding">
-      <form ng-submit="$event.preventDefault()">
-        <p>Use <code>md-autocomplete</code> to search for matches from local or remote data sources.</p>
-        <md-autocomplete
-            ng-disabled="ctrl.isDisabled"
-            md-no-cache="ctrl.noCache"
-            md-selected-item="ctrl.selectedItem"
-            md-search-text-change="ctrl.searchTextChange(ctrl.searchText)"
-            md-search-text="ctrl.searchText"
-            md-selected-item-change="ctrl.selectedItemChange(item)"
-            md-items="item in ctrl.querySearch(ctrl.searchText)"
-            md-item-text="item.display"
-            md-min-length="0"
-            placeholder="What is your favorite US state?">
-          <md-item-template>
-            <span md-highlight-text="ctrl.searchText" md-highlight-flags="^i">{{item.display}}</span>
-          </md-item-template>
-          <md-not-found>
-            No states matching "{{ctrl.searchText}}" were found.
-            <a ng-click="ctrl.newState(ctrl.searchText)">Create a new one!</a>
-          </md-not-found>
-        </md-autocomplete>
-        <br/>
-        <md-checkbox ng-model="ctrl.simulateQuery">Simulate query for results?</md-checkbox>
-        <md-checkbox ng-model="ctrl.noCache">Disable caching of queries?</md-checkbox>
-        <md-checkbox ng-model="ctrl.isDisabled">Disable the input?</md-checkbox>
-
-        <p>By default, <code>md-autocomplete</code> will cache results when performing a query.  After the initial call is performed, it will use the cached results to eliminate unnecessary server requests or lookup logic. This can be disabled above.</p>
-      </form>
-    </md-content>
-</div>
  <div ng-controller="DemoCtrl as ctrl" layout="column" ng-cloak>
     <md-content class="md-padding">
       <form ng-submit="$event.preventDefault()">
@@ -78,6 +46,12 @@
 
         <p>By default, <code>md-autocomplete</code> will cache results when performing a query.  After the initial call is performed, it will use the cached results to eliminate unnecessary server requests or lookup logic. This can be disabled above.</p>
       </form>
+      <div ng-keydown="ctrl.submit($event)">
+            <input type="text" mentio="true"
+                    mentio-typed-text="typedTerm" 
+                    mentio-items="ctrl.states | filter:label:typedTerm" 
+                    ng-model="myval"/>
+      </div>
     </md-content>
 </div>
 
@@ -91,12 +65,13 @@
   <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular-messages.min.js"></script>
   <script src="https://cdn.gitcdn.link/cdn/angular/bower-material/v1.1.1/angular-material.js"></script>
   <script src="components/version/mention.js"></script>
+  <script src="components/version/mentio-orig.js"></script>
   <script src="components/version/version.js"></script>
    <script src="components/version/version-directive.js"></script>
   <script src="components/version/interpolate-filter.js"></script>
 
   <script>
-   angular.module('MyApp',['ngMaterial', 'ngMessages', 'myApp.mention', 'myApp.version'])
+   angular.module('MyApp',['ngMaterial', 'ngMessages', 'myApp.mention', 'myApp.version', 'mentio'])
 
 .controller('AppCtrl', function($scope) {
   $scope.title1 = 'Button';
@@ -107,7 +82,7 @@
 
 }).controller('DemoCtrl', DemoCtrl);
 
-  function DemoCtrl ($timeout, $q, $log) {
+  function DemoCtrl ($scope, $timeout, $q, $log) {
     var self = this;
 
     self.simulateQuery = false;
@@ -120,6 +95,10 @@
     self.searchTextChange   = searchTextChange;
 
     self.newState = newState;
+
+    function submit(event) {
+      console.log('submitted keypress: ' + event.keyCode);
+    }
 
     function newState(state) {
       alert("Sorry! You'll need to create a Constitution for " + state + " first!");
@@ -168,6 +147,7 @@
       return allStates.split(/, +/g).map( function (state) {
         return {
           value: state.toLowerCase(),
+          label: state,
           display: state
         };
       });

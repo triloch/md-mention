@@ -428,6 +428,8 @@ function MdMentionCtrl ($scope, $element, $mdUtil, $mdConstant, $mdTheming, $win
       selectedItemWatchers = [],
       hasFocus             = false,
       triggerSearch        = false,
+      triggerPosition      = 0,
+      triggerLength        = 0,
       fetchesInProgress    = 0,
       enableWrapScroll     = null,
       inputModelCtrl       = null,
@@ -1181,7 +1183,12 @@ function MdMentionCtrl ($scope, $element, $mdUtil, $mdConstant, $mdTheming, $win
     $mdUtil.nextTick(function () {
       getDisplayValue(ctrl.matches[ index ]).then(function (val) {
         var ngModel = elements.$.input.controller('ngModel');
-        ngModel.$setViewValue(val);
+        var text = ngModel.$viewValue;
+        val = val + ' ';
+        var startPos = triggerPosition;
+        var endPos = triggerPosition + triggerLength + 1;
+        text = text.substring(0, startPos) + val + text.substring(endPos, text.length);
+        ngModel.$setViewValue(text);
         ngModel.$render();
       }).finally(function () {
         $scope.selectedItem = ctrl.matches[ index ];
@@ -1359,6 +1366,8 @@ function MdMentionCtrl ($scope, $element, $mdUtil, $mdConstant, $mdTheming, $win
     //searchText - scan backwards for @sign
     var cursorPos = $scope.mentionText.length;
     var fromPos = $scope.mentionText.lastIndexOf('@');
+    triggerPosition = fromPos;
+    triggerLength = cursorPos - fromPos;
     var term = $scope.mentionText.substring(fromPos + 1, cursorPos);
     $scope.searchText = term;
     term = term.toLowerCase();

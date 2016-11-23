@@ -240,6 +240,7 @@ angular.module('mentio', [])
                                 event.preventDefault();
                              }
                         }
+                        console.log('event: ' + event.which); // THIS IS WHERE WE ACCEPT THE ENTERKEY
                     }
                 );
             }],
