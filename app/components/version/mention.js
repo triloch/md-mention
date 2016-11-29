@@ -433,6 +433,8 @@ function MdMentionCtrl ($scope, $element, $mdUtil, $mdConstant, $mdTheming, $win
       fetchesInProgress    = 0,
       enableWrapScroll     = null,
       inputModelCtrl       = null,
+      triggerCharSet       = ['@'],
+      mentionInfo          = null,
       debouncedOnResize    = $mdUtil.debounce(onWindowResize);
 
   // Public Exported Variables with handlers
@@ -859,7 +861,7 @@ function MdMentionCtrl ($scope, $element, $mdUtil, $mdConstant, $mdTheming, $win
     ctrl.index = getDefaultIndex();
 
     // do nothing on init
-    if (searchText === previousSearchText || !triggerSearch) return;
+    if (searchText === previousSearchText) return; //|| !triggerSearch) return;
 
     updateModelValidators();
 
@@ -919,7 +921,7 @@ function MdMentionCtrl ($scope, $element, $mdUtil, $mdConstant, $mdTheming, $win
   function focus($event) {
     hasFocus = true;
 
-    if (isSearchable() && isMinLengthMet() && triggerSearch) {
+    if (isSearchable() && isMinLengthMet()) { //} && triggerSearch) {
       handleQuery();
     }
 
@@ -1088,7 +1090,7 @@ function MdMentionCtrl ($scope, $element, $mdUtil, $mdConstant, $mdTheming, $win
     if (ctrl.loading && !hasMatches()) return false; // No query when query is in progress.
     else if (hasSelection()) return false;           // No query if there is already a selection
     else if (!hasFocus) return false;                // No query if the input does not have focus
-    return triggerSearch;
+    return (mentionInfo !== undefined && mentionInfo !== null);
   }
 
   /**
@@ -1175,6 +1177,53 @@ function MdMentionCtrl ($scope, $element, $mdUtil, $mdConstant, $mdTheming, $win
   }
 
   /**
+   * find the segment that triggered the item
+   **/
+  function getTriggerInfo(ctx, triggerCharSet, requireLeadingSpace, menuAlreadyActive, hasTrailingSpace) {
+      // yes this function needs refactoring 
+      var path, offset;
+      var selected = document.activeElement;
+      var startPos = selected.selectionStart;
+      var effectiveRange = selected.value.substring(0, startPos);
+
+      if (effectiveRange !== undefined && effectiveRange !== null) {
+        var mostRecentTriggerCharPos = -1;
+        var triggerChar;
+        triggerCharSet.forEach(function(c) {
+          var idx = effectiveRange.lastIndexOf(c);
+          if (idx > mostRecentTriggerCharPos) {
+            mostRecentTriggerCharPos = idx;
+            triggerChar = c;
+          }
+        });
+
+        if(mostRecentTriggerCharPos >=0
+           && (mostRecentTriggerCharPos === 0 
+               || !requireLeadingSpace ||
+               /[\xA0\s]/g.test(effectiveRange.substring(mostRecentTriggerCharPos - 1, mostRecentTriggerCharPos)))) {
+
+          var currentTriggerSnippet = effectiveRange.substring(mostRecentTriggerCharPos+1, effectiveRange.length);
+          triggerChar = effectiveRange.substring(mostRecentTriggerCharPos, mostRecentTriggerCharPos+1);
+          var firstSnippetChar = currentTriggerSnippet.substring(0,1);
+          var leadingSpace = currentTriggerSnippet.length > 0 
+                             && ( firstSnippetChar === ' ' 
+                                  || firstSnippetChar === '\xA0' );
+          if(hasTrailingSpace) {
+            currentTriggerSnippet = currentTriggerSnippet.trim();
+          }
+
+          if (!leadingSpace && !(/[\xA0\s]/g.test(currentTriggerSnippet))) {
+            return {
+                    mentionPosition: mostRecentTriggerCharPos,
+                    mentionText: currentTriggerSnippet,
+                    mentionSelectedElement: selected,
+                    mentionTriggerChar: triggerChar
+            };
+          }
+        }
+      }
+   }
+  /**
    * Selects the item at the given index.
    * @param index
    */
@@ -1185,14 +1234,40 @@ function MdMentionCtrl ($scope, $element, $mdUtil, $mdConstant, $mdTheming, $win
         var ngModel = elements.$.input.controller('ngModel');
         var text = ngModel.$viewValue;
         val = val + ' ';
-        var startPos = triggerPosition;
-        var endPos = triggerPosition + triggerLength + 1;
+
+        mentionInfo = getTriggerInfo(false, triggerCharSet, true, true, true);
+        if( mentionInfo !== undefined ) {
+          val = val + ' ';
+          var startPos = mentionInfo.mentionPosition;
+          var endPos = startPos + mentionInfo.mentionText.length + 1;
+          text = text.substring(0, startPos) + val + text.substring(endPos, text.length);
+          ngModel.$setViewValue(text);
+          ngModel.$render();
+        }
+      }).finally(function () {
+        $scope.selectedItem = ctrl.matches[ index ];
+        setLoading(false);
+        ctrl.hidden = shouldHide();
+      });
+    }, false);
+  }
+
+  function select_Orig (index) {
+    //-- force form to update state for validation
+    $mdUtil.nextTick(function () {
+      getDisplayValue(ctrl.matches[ index ]).then(function (val) {
+        var ngModel = elements.$.input.controller('ngModel');
+        var text = ngModel.$viewValue;
+        val = val + ' ';
+        var startPos = triggerPosition + 1;
+        var endPos = triggerPosition + triggerLength;
         text = text.substring(0, startPos) + val + text.substring(endPos, text.length);
         ngModel.$setViewValue(text);
         ngModel.$render();
       }).finally(function () {
         $scope.selectedItem = ctrl.matches[ index ];
         setLoading(false);
+        ctrl.hidden = shouldHide();
       });
     }, false);
   }
@@ -1280,7 +1355,6 @@ function MdMentionCtrl ($scope, $element, $mdUtil, $mdConstant, $mdTheming, $win
       if ((searchText || '') !== ($scope.searchText || '')) {
         return;
       }
-
       handleResults(matches);
     }
   }
@@ -1353,7 +1427,7 @@ function MdMentionCtrl ($scope, $element, $mdUtil, $mdConstant, $mdTheming, $win
   function notFoundVisible () {
     var textLength = (ctrl.scope.searchText || '').length;
 
-    return triggerSearch && ctrl.hasNotFound && !hasMatches() && (!ctrl.loading || isPromiseFetching()) && textLength >= getMinLength() && (hasFocus || noBlur) && !hasSelection();
+    return (triggerSearch || true) && ctrl.hasNotFound && !hasMatches() && (!ctrl.loading || isPromiseFetching()) && textLength >= getMinLength() && (hasFocus || noBlur) && !hasSelection();
   }
 
   /**
@@ -1361,6 +1435,24 @@ function MdMentionCtrl ($scope, $element, $mdUtil, $mdConstant, $mdTheming, $win
    * results first, then forwards the process to `fetchResults` if necessary.
    */
   function handleQuery () {
+    var searchText = $scope.searchText || '';
+
+    mentionInfo = getTriggerInfo(false, triggerCharSet, true, false, true);
+    if( mentionInfo !== undefined) {
+      var term = mentionInfo.mentionText.toLowerCase();
+      $scope.searchText = term;
+
+      if (!$scope.noCache && cache[term]) {
+        // The results should be handled as same as a normal un-cached request does.
+        handleResults(cache[term]);
+      } else {
+        fetchResults(term);
+      }
+    }
+    ctrl.hidden = shouldHide();
+  }
+
+  function handleQuery_Orig () {
     var searchText = $scope.searchText || '';
 
     //searchText - scan backwards for @sign
@@ -1384,7 +1476,6 @@ function MdMentionCtrl ($scope, $element, $mdUtil, $mdConstant, $mdTheming, $win
 
     ctrl.hidden = shouldHide();
   }
-
   /**
    * Handles the retrieved results by showing them in the autocompletes dropdown.
    * @param results Retrieved results
