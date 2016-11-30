@@ -51,6 +51,22 @@
           background: rgb(255,255,255);
     }
 
+    .mention-custom-template li {
+          border-bottom: 1px solid #ccc;
+          height: auto;
+          padding-top: 8px;
+          padding-bottom: 8px;
+          white-space: normal; }
+    .mention-custom-template li:last-child {
+        border-bottom-width: 0; }
+    .mention-custom-template .item-title,
+    .mention-custom-template .item-metadata {
+      display: block;
+      line-height: 2; }
+    .mention-custom-template .item-title img {
+      height: 18px;
+      width: 18px; }
+
   </style>
 </head>
 <body>
@@ -68,7 +84,7 @@
             md-search-text="ctrl.searchText"
             md-selected-item-change="ctrl.selectedItemChange(item)"
             md-items="item in ctrl.querySearch(ctrl.searchText)"
-            md-item-text="item.display"
+            md-item-text="item.email"
             md-min-length="0"
             ng-model="mentionable"
             placeholder="What is your favorite US state?">
@@ -81,14 +97,21 @@
             md-search-text-change="ctrl.searchTextChange(ctrl.searchText)"
             md-search-text="ctrl.searchText"
             md-selected-item-change="ctrl.selectedItemChange(item)"
-            md-items="item in ctrl.querySearch(ctrl.searchText)"
-            md-item-text="item.display"
+            md-items="item in queryS(ctrl.searchText)"
+            md-item-text="'@'+item.login.username"
             md-min-length="0"
+            md-on-complete="ctrl.tweet(text)"
             ng-model="mentionable"
+            md-menu-class="mention-custom-template
             placeholder="Whats on your mind?">
-          <md-item-template>
-            <span md-highlight-text="ctrl.searchText" md-highlight-flags="^i">{{item.display}}</span>
-          </md-item-template>
+            <md-item-template>
+              <md-list-item class="md-2-line">
+              <img ng-src="{{item.picture.thumbnail}}" class="md-avatar" alt="{{item.login.username}}" />
+              <div class="md-list-item-text">
+                <h3>{{item.name.first}} {{item.name.last}}</h3>
+                <p>{{item.email}}</p>
+              </div>
+            </md-item-template>
           <md-not-found>
             No users matching "{{ctrl.searchText}}" were found.
           </md-not-found>
@@ -221,22 +244,27 @@
   };
   }
 
-  function DemoCtrl ($scope, $timeout, $q, $log) {
+  function DemoCtrl ($scope, $timeout, $q, $log, $http) {
     var self = this;
 
     self.simulateQuery = false;
     self.isDisabled    = false;
     $scope.myval = 'test';
+    $scope.queryS = queryRemoteSearch;
 
     // list of `state` value/display objects
     self.states        = loadAll();
-    self.querySearch   = querySearch;
+    self.querySearch   = queryRemoteSearch;
     self.querys = querys;
     self.selectedItemChange = selectedItemChange;
     self.searchTextChange   = searchTextChange;
     self.submit = submit;
 
     self.newState = newState;
+    self.tweet = function(text) {
+      console.log('tweet: ' + text);
+      $scope.mentionable = '';
+    }
 
     function submit(event) {
       if(event.keyCode === 13) {
@@ -256,6 +284,19 @@
        self.states = [{ value: 'california', label: 'Cal', display: 'Cal'}];
     }
 
+    function queryRemoteSearch (query) {
+      var deferred = $q.defer();
+
+      $http.get('https://randomuser.me/api/?results=5').then(
+        function(response) {
+            return deferred.resolve(response.data.results);
+        }, 
+        function(response) {
+            console.log('error: ' + response.statusText);
+            return deferred.reject([]);
+        });
+      return deferred.promise;
+    }
     /**
      * Search for states... use $timeout to simulate
      * remote dataservice call.

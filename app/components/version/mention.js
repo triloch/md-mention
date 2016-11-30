@@ -246,7 +246,8 @@ function MdMention ($$mdSvgRegistry) {
       escapeOptions:    '@?mdEscapeOptions',
       dropdownItems:    '=?mdDropdownItems',
       dropdownPosition: '@?mdDropdownPosition',
-      clearButton:      '=?mdClearButton'
+      clearButton:      '=?mdClearButton',
+      onComplete:       '&?mdOnComplete'
     },
     compile: function(tElement, tAttrs) {
       var attributes = ['md-select-on-focus', 'md-no-asterisk', 'ng-trim', 'ng-pattern'];
@@ -397,11 +398,11 @@ function MdMention ($$mdSvgRegistry) {
         return '' +
           '<button ' +
               'type="button" ' +
-              'aria-label="Clear Input" ' +
+              'aria-label="Post" ' +
               'tabindex="-1" ' +
-              'ng-if="clearButton && $mdAutocompleteCtrl.scope.searchText && !$mdAutocompleteCtrl.isDisabled" ' +
-              'ng-click="$mdAutocompleteCtrl.clear($event)">' +
-            '<md-icon md-svg-src="' + $$mdSvgRegistry.mdClose + '"></md-icon>' +
+              'ng-if="true || (clearButton && $mdAutocompleteCtrl.scope.searchText && !$mdAutocompleteCtrl.isDisabled)" ' +
+              'ng-click="$mdAutocompleteCtrl.announceComplete()">' +
+            '<md-icon>send</md-icon>' +
           '</button>';
         }
     }
@@ -470,6 +471,7 @@ function MdMentionCtrl ($scope, $element, $mdUtil, $mdConstant, $mdTheming, $win
   ctrl.notFoundVisible               = notFoundVisible;
   ctrl.loadingIsVisible              = loadingIsVisible;
   ctrl.positionDropdown              = positionDropdown;
+  ctrl.announceComplete              = announceComplete;
 
   /**
    * Report types to be used for the $mdLiveAnnouncer
@@ -822,6 +824,16 @@ function MdMentionCtrl ($scope, $element, $mdUtil, $mdConstant, $mdTheming, $win
   }
 
   /**
+   * use the user defined expression to submit the input
+   **/
+   function announceComplete () {
+      angular.isFunction($scope.onComplete) 
+        && $scope.onComplete({ post: {text: $scope.mentionText, 
+                                      html:$scope.mentionHtml, 
+                                      mentions:$scope.mentions }});
+   }
+
+  /**
    * Calls any external watchers listening for the selected item.  Used in conjunction with
    * `registerSelectedItemWatcher`.
    * @param selectedItem
@@ -931,6 +943,7 @@ function MdMentionCtrl ($scope, $element, $mdUtil, $mdConstant, $mdTheming, $win
   }
 
   function keypress (event) {
+    /*
     switch (event.keyCode) {
       case KEY_CODE_AT: //trigger the lookup only in this condition
         console.log('triggering lookup');
@@ -942,6 +955,7 @@ function MdMentionCtrl ($scope, $element, $mdUtil, $mdConstant, $mdTheming, $win
       default:
         console.log('pressed key: ' + event.keyCode);
     }
+    */
   }
 
   /**
@@ -975,7 +989,13 @@ function MdMentionCtrl ($scope, $element, $mdUtil, $mdConstant, $mdTheming, $win
         select(ctrl.index);
         break;
       case $mdConstant.KEY_CODE.ENTER:
-        if (ctrl.hidden || ctrl.loading || ctrl.index < 0 || ctrl.matches.length < 1) return;
+        if (ctrl.hidden || ctrl.loading || ctrl.index < 0 || ctrl.matches.length < 1) {
+          //if enter key is hit when there is no control open then submit.
+          if(ctrl.hidden) {
+            announceComplete();
+          }
+          return;
+        }
         if (hasSelection()) return;
         event.stopPropagation();
         event.preventDefault();
@@ -987,17 +1007,17 @@ function MdMentionCtrl ($scope, $element, $mdUtil, $mdConstant, $mdTheming, $win
         event.stopPropagation();
 
         clearSelectedItem();
-        if ($scope.searchText && hasEscapeOption('clear')) {
-          clearSearchText();
-        }
+        //if ($scope.searchText && hasEscapeOption('clear')) {
+        //  clearSearchText();
+        //}
 
         // Manually hide (needed for mdNotFound support)
         ctrl.hidden = true;
 
-        if (hasEscapeOption('blur')) {
+        //if (hasEscapeOption('blur')) {
           // Force the component to blur if they hit escape
-          doBlur(true);
-        }
+        //  doBlur(true);
+        //}
 
         break;
       default:
@@ -1235,12 +1255,14 @@ function MdMentionCtrl ($scope, $element, $mdUtil, $mdConstant, $mdTheming, $win
         var text = ngModel.$viewValue;
         val = val + ' ';
 
-        mentionInfo = getTriggerInfo(false, triggerCharSet, true, true, true);
+        mentionInfo = getTriggerInfo(false, triggerCharSet, false, false, false);
         if( mentionInfo !== undefined ) {
           val = val + ' ';
           var startPos = mentionInfo.mentionPosition;
           var endPos = startPos + mentionInfo.mentionText.length + 1;
           text = text.substring(0, startPos) + val + text.substring(endPos, text.length);
+          $scope.mentionHtml = text;
+          $scope.mentions.push()
           ngModel.$setViewValue(text);
           ngModel.$render();
         }
@@ -1437,7 +1459,7 @@ function MdMentionCtrl ($scope, $element, $mdUtil, $mdConstant, $mdTheming, $win
   function handleQuery () {
     var searchText = $scope.searchText || '';
 
-    mentionInfo = getTriggerInfo(false, triggerCharSet, true, false, true);
+    mentionInfo = getTriggerInfo(false, triggerCharSet, false, false, false);
     if( mentionInfo !== undefined) {
       var term = mentionInfo.mentionText.toLowerCase();
       $scope.searchText = term;
