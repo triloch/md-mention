@@ -247,7 +247,8 @@ function MdMention ($$mdSvgRegistry) {
       dropdownItems:    '=?mdDropdownItems',
       dropdownPosition: '@?mdDropdownPosition',
       clearButton:      '=?mdClearButton',
-      onComplete:       '&?mdOnComplete'
+      onComplete:       '&?mdOnComplete',
+      post:             '=?mdPost'
     },
     compile: function(tElement, tAttrs) {
       var attributes = ['md-select-on-focus', 'md-no-asterisk', 'ng-trim', 'ng-pattern'];
@@ -494,11 +495,13 @@ function MdMentionCtrl ($scope, $element, $mdUtil, $mdConstant, $mdTheming, $win
     $mdUtil.initOptionalProperties($scope, $attrs, {
       searchText: '',
       selectedItem: null,
-      clearButton: false
+      clearButton: false,
+      post: {text:'', html: '', mentions: []}
     });
 
     $mdTheming($element);
     configureWatchers();
+    
     $mdUtil.nextTick(function () {
 
       gatherElements();
@@ -819,7 +822,9 @@ function MdMentionCtrl ($scope, $element, $mdUtil, $mdConstant, $mdTheming, $win
   /**
    * Use the user-defined expression to announce changes each time the search text is changed
    */
-  function announceTextChange () {
+  function announceTextChange (text) {
+    $scope.post.text = text;
+    $scope.post.html = text;
     angular.isFunction($scope.textChange) && $scope.textChange();
   }
 
@@ -828,9 +833,7 @@ function MdMentionCtrl ($scope, $element, $mdUtil, $mdConstant, $mdTheming, $win
    **/
    function announceComplete () {
       angular.isFunction($scope.onComplete) 
-        && $scope.onComplete({ post: {text: $scope.mentionText, 
-                                      html:$scope.mentionHtml, 
-                                      mentions:$scope.mentions }});
+        && $scope.onComplete({ post: $scope.post});
    }
 
   /**
@@ -884,7 +887,7 @@ function MdMentionCtrl ($scope, $element, $mdUtil, $mdConstant, $mdTheming, $win
 
 
         // trigger change event if available
-        if (searchText !== previousSearchText) announceTextChange();
+        if (searchText !== previousSearchText) announceTextChange(searchText);
 
         // cancel results if search text is not long enough
         if (!isMinLengthMet()) {
@@ -1261,8 +1264,11 @@ function MdMentionCtrl ($scope, $element, $mdUtil, $mdConstant, $mdTheming, $win
           var startPos = mentionInfo.mentionPosition;
           var endPos = startPos + mentionInfo.mentionText.length + 1;
           text = text.substring(0, startPos) + val + text.substring(endPos, text.length);
-          $scope.mentionHtml = text;
-          $scope.mentions.push()
+
+          //$scope.data.text = text;
+          //$scope.data.html = text;
+          $scope.post.mentions.push(ctrl.matches[index]);
+          
           ngModel.$setViewValue(text);
           ngModel.$render();
         }

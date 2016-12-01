@@ -100,9 +100,9 @@
             md-items="item in queryS(ctrl.searchText)"
             md-item-text="'@'+item.login.username"
             md-min-length="0"
-            md-on-complete="ctrl.tweet(text)"
-            ng-model="mentionable"
-            md-menu-class="mention-custom-template
+            ng-model="mentions"
+            md-post="post"
+            md-menu-class="mention-custom-template"
             placeholder="Whats on your mind?">
             <md-item-template>
               <md-list-item class="md-2-line">
@@ -116,6 +116,11 @@
             No users matching "{{ctrl.searchText}}" were found.
           </md-not-found>
         </md-mention>
+
+        key: <div>{{ctrl.searchText}}</div>
+        text: <div>{{post.text}}</div>
+        html: <div>{{post.html}}</div>
+        mentions: <ul><li ng-repeat="u in post.mentions">{{u.email}}</li></ul>
         <br/>
         <md-checkbox ng-model="ctrl.simulateQuery">Simulate query for results?</md-checkbox>
         <md-checkbox ng-model="ctrl.noCache">Disable caching of queries?</md-checkbox>
@@ -168,6 +173,11 @@
   $scope.title1 = 'Button';
   $scope.title4 = 'Warn';
   $scope.isDisabled = true;
+  $scope.mentions = {
+    mentionText: '',
+    mentionHtml: '',
+    mentions: []
+  };
 
   $scope.googleUrl = 'http://google.com';
 
