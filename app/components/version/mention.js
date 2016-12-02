@@ -248,7 +248,7 @@ function MdMention ($$mdSvgRegistry) {
       dropdownPosition: '@?mdDropdownPosition',
       clearButton:      '=?mdClearButton',
       onComplete:       '&?mdOnComplete',
-      post:             '=?mdPost'
+      post:             '=ngModel',
     },
     compile: function(tElement, tAttrs) {
       var attributes = ['md-select-on-focus', 'md-no-asterisk', 'ng-trim', 'ng-pattern'];
@@ -636,10 +636,17 @@ function MdMentionCtrl ($scope, $element, $mdUtil, $mdConstant, $mdTheming, $win
 
     $scope.$watch('mentionText', wait ? $mdUtil.debounce(handleSearchText, wait) : handleSearchText);
     $scope.$watch('selectedItem', selectedItemChange);
+    $scope.$watch('post', handlePostUpdate);
+
 
     angular.element($window).on('resize', debouncedOnResize);
 
     $scope.$on('$destroy', cleanup);
+  }
+
+  function handlePostUpdate(newValue, oldValue) {
+    if(oldValue === newValue) return;
+    $scope.mentionText = newValue.text;
   }
 
   /**

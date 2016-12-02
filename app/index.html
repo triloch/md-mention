@@ -100,8 +100,9 @@
             md-items="item in queryS(ctrl.searchText)"
             md-item-text="'@'+item.login.username"
             md-min-length="0"
-            ng-model="mentions"
+            ng-model="post"
             md-post="post"
+            md-on-complete="ctrl.tweet(post)"
             md-menu-class="mention-custom-template"
             placeholder="Whats on your mind?">
             <md-item-template>
@@ -173,9 +174,9 @@
   $scope.title1 = 'Button';
   $scope.title4 = 'Warn';
   $scope.isDisabled = true;
-  $scope.mentions = {
-    mentionText: '',
-    mentionHtml: '',
+  $scope.post = {
+    text: '',
+    html: '',
     mentions: []
   };
 
@@ -274,6 +275,8 @@
     self.tweet = function(text) {
       console.log('tweet: ' + text);
       $scope.mentionable = '';
+      $scope.mentionText = '';
+      $scope.post = {text: '', html: '', mentions: []};
     }
 
     function submit(event) {
