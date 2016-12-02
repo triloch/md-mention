@@ -1,20 +1,20 @@
 angular
-    .module('myApp.mention', ['ngMaterial'])
+    .module('maildesk.components.mention', ['ngMaterial'])
     .directive('mdMention', MdMention)
     .controller('MdMentionCtrl', ['$scope', '$element', '$mdUtil', '$mdConstant', '$mdTheming', '$window',
                              '$animate', '$rootElement', '$attrs', '$q', '$log', MdMentionCtrl]);
 /**
  * @ngdoc directive
- * @name mdAutocomplete
+ * @name mdMention
  * @module material.components.autocomplete
  *
  * @description
- * `<md-autocomplete>` is a special input component with a drop-down of all possible matches to a
+ * `<md-mention>` is a special input component with a drop-down of all possible matches to a
  *     custom query. This component allows you to provide real-time suggestions as the user types
  *     in the input area.
  *
  * To start, you will need to specify the required parameters and provide a template for your
- *     results. The content inside `md-autocomplete` will be treated as a template.
+ *     results. The content inside `md-mention` will be treated as a template.
  *
  * In more complex cases, you may want to include other content such as a message to display when
  *     no matches were found.  You can do this by wrapping your template in `md-item-template` and
@@ -38,32 +38,32 @@ angular
  * ### Notes
  * **Autocomplete Dropdown Items Rendering**
  *
- * The `md-autocomplete` uses the the <a ng-href="api/directive/mdVirtualRepeatContainer">VirtualRepeat</a>
+ * The `md-mention` uses the the <a ng-href="api/directive/mdVirtualRepeatContainer">VirtualRepeat</a>
  * directive for displaying the results inside of the dropdown.<br/>
  *
  * > When encountering issues regarding the item template please take a look at the
  *   <a ng-href="api/directive/mdVirtualRepeatContainer">VirtualRepeatContainer</a> documentation.
  *
- * **Autocomplete inside of a Virtual Repeat**
+ * **@mention inside of a Virtual Repeat**
  *
- * When using the `md-autocomplete` directive inside of a
+ * When using the `md-mention` directive inside of a
  * <a ng-href="api/directive/mdVirtualRepeatContainer">VirtualRepeatContainer</a> the dropdown items might
  * not update properly, because caching of the results is enabled by default.
  *
  * The autocomplete will then show invalid dropdown items, because the VirtualRepeat only updates the
- * scope bindings, rather than re-creating the `md-autocomplete` and the previous cached results will be used.
+ * scope bindings, rather than re-creating the `md-mention` and the previous cached results will be used.
  *
  * > To avoid such problems ensure that the autocomplete does not cache any results.
  *
  * <hljs lang="html">
- *   <md-autocomplete
+ *   <md-mention
  *       md-no-cache="true"
  *       md-selected-item="selectedItem"
  *       md-items="item in items"
  *       md-search-text="searchText"
  *       md-item-text="item.display">
  *     <span>{{ item.display }}</span>
- *   </md-autocomplete>
+ *   </md-mention>
  * </hljs>
  *
  *
@@ -125,18 +125,29 @@ angular
  * @usage
  * ### Basic Example
  * <hljs lang="html">
- *   <md-autocomplete
+ *   <md-mention
  *       md-selected-item="selectedItem"
  *       md-search-text="searchText"
  *       md-items="item in getMatches(searchText)"
- *       md-item-text="item.display">
+ *       md-item-text="item.display"
+ *       ng-model="post"
+ *       md-on-complete="tweet(post)">
  *     <span md-highlight-text="searchText">{{item.display}}</span>
- *   </md-autocomplete>
+ *   </md-mention>
  * </hljs>
+ * <hljs lang="js">
+ *   function AppController($scope, $http) {
+ *     $scope.tweet = function(post) {
+ *        console.log(post.text); // contains the input
+ *        console.log(post.mentions); //array of items mentioned
+ *     }
+ *   }
+ * </hljs>
+ *
  *
  * ### Example with "not found" message
  * <hljs lang="html">
- * <md-autocomplete
+ * <md-mention
  *     md-selected-item="selectedItem"
  *     md-search-text="searchText"
  *     md-items="item in getMatches(searchText)"
@@ -147,7 +158,7 @@ angular
  *   <md-not-found>
  *     No matches found.
  *   </md-not-found>
- * </md-autocomplete>
+ * </md--mention>
  * </hljs>
  *
  * In this example, our code utilizes `md-item-template` and `md-not-found` to specify the
@@ -167,7 +178,7 @@ angular
  * ### Example with validation
  * <hljs lang="html">
  * <form name="autocompleteForm">
- *   <md-autocomplete
+ *   <md--mention
  *       required
  *       md-input-name="autocomplete"
  *       md-selected-item="selectedItem"
@@ -180,7 +191,7 @@ angular
  *     <div ng-messages="autocompleteForm.autocomplete.$error">
  *       <div ng-message="required">This field is required</div>
  *     </div>
- *   </md-autocomplete>
+ *   </md-mention>
  * </form>
  * </hljs>
  *
@@ -204,14 +215,14 @@ angular
  * </hljs>
  *
  * <hljs lang="html">
- *   <md-autocomplete
+ *   <md-mention
  *       md-selected-item="selectedItem"
  *       md-search-text="searchText"
  *       md-items="item in query(searchText)">
  *     <md-item-template>
  *       <span md-highlight-text="searchText">{{item}}</span>
  *     </md-item-template>
- * </md-autocomplete>
+ * </md-mention>
  * </hljs>
  *
  */
@@ -220,7 +231,7 @@ function MdMention ($$mdSvgRegistry) {
 
   return {
     controller:   'MdMentionCtrl',
-    controllerAs: '$mdAutocompleteCtrl',
+    controllerAs: '$mdMentionCtrl',
     scope:        {
       inputName:        '@mdInputName',
       inputMinlength:   '@mdInputMinlength',
@@ -291,31 +302,31 @@ function MdMention ($$mdSvgRegistry) {
       return '\
         <md-autocomplete-wrap\
             ng-class="{ \'md-whiteframe-z1\': !floatingLabel, \
-                        \'md-menu-showing\': !$mdAutocompleteCtrl.hidden, \
+                        \'md-menu-showing\': !$mdMentionCtrl.hidden, \
                         \'md-show-clear-button\': !!clearButton }">\
           ' + getInputElement() + '\
           ' + getClearButton() + '\
           <md-progress-linear\
               class="' + (attr.mdFloatingLabel ? 'md-inline' : '') + '"\
-              ng-if="$mdAutocompleteCtrl.loadingIsVisible()"\
+              ng-if="$mdMentionCtrl.loadingIsVisible()"\
               md-mode="indeterminate"></md-progress-linear>\
           <md-virtual-repeat-container\
               md-auto-shrink\
               md-auto-shrink-min="1"\
-              ng-mouseenter="$mdAutocompleteCtrl.listEnter()"\
-              ng-mouseleave="$mdAutocompleteCtrl.listLeave()"\
-              ng-mouseup="$mdAutocompleteCtrl.mouseUp()"\
-              ng-hide="$mdAutocompleteCtrl.hidden"\
+              ng-mouseenter="$mdMentionCtrl.listEnter()"\
+              ng-mouseleave="$mdMentionCtrl.listLeave()"\
+              ng-mouseup="$mdMentionCtrl.mouseUp()"\
+              ng-hide="$mdMentionCtrl.hidden"\
               class="md-autocomplete-suggestions-container md-whiteframe-z1"\
-              ng-class="{ \'md-not-found\': $mdAutocompleteCtrl.notFoundVisible() }"\
+              ng-class="{ \'md-not-found\': $mdMentionCtrl.notFoundVisible() }"\
               role="presentation">\
             <ul class="md-autocomplete-suggestions"\
                 ng-class="::menuClass"\
-                id="ul-{{$mdAutocompleteCtrl.id}}">\
-              <li md-virtual-repeat="item in $mdAutocompleteCtrl.matches"\
-                  ng-class="{ selected: $index === $mdAutocompleteCtrl.index }"\
-                  ng-click="$mdAutocompleteCtrl.select($index)"\
-                  md-extra-name="$mdAutocompleteCtrl.itemName">\
+                id="ul-{{$mdMentionCtrl.id}}">\
+              <li md-virtual-repeat="item in $mdMentionCtrl.matches"\
+                  ng-class="{ selected: $index === $mdMentionCtrl.index }"\
+                  ng-click="$mdMentionCtrl.select($index)"\
+                  md-extra-name="$mdMentionCtrl.itemName">\
                   ' + itemTemplate + '\
                   </li>' + noItemsTemplate + '\
             </ul>\
@@ -326,15 +337,15 @@ function MdMention ($$mdSvgRegistry) {
         var templateTag = element.find('md-item-template').detach(),
             html = templateTag.length ? templateTag.html() : element.html();
         if (!templateTag.length) element.empty();
-        return '<md-autocomplete-parent-scope md-autocomplete-replace>' + html + '</md-autocomplete-parent-scope>';
+        return '<md-mentio -parent-scope md-mention-replace>' + html + '</md-mention-parent-scope>';
       }
 
       function getNoItemsTemplate() {
         var templateTag = element.find('md-not-found').detach(),
             template = templateTag.length ? templateTag.html() : '';
         return template
-            ? '<li ng-if="$mdAutocompleteCtrl.notFoundVisible()"\
-                         md-autocomplete-parent-scope>' + template + '</li>'
+            ? '<li ng-if="$mdMentionCtrl.notFoundVisible()"\
+                         md-mention-parent-scope>' + template + '</li>'
             : '';
 
       }
@@ -346,52 +357,52 @@ function MdMention ($$mdSvgRegistry) {
               <label>{{floatingLabel}}</label>\
               <input type="search"\
                   ' + (tabindex != null ? 'tabindex="' + tabindex + '"' : '') + '\
-                  id="{{ inputId || \'fl-input-\' + $mdAutocompleteCtrl.id }}"\
+                  id="{{ inputId || \'fl-input-\' + $mdMentionCtrl.id }}"\
                   name="{{inputName}}"\
                   autocomplete="off"\
-                  ng-required="$mdAutocompleteCtrl.isRequired"\
-                  ng-readonly="$mdAutocompleteCtrl.isReadonly"\
+                  ng-required="$mdMentionCtrl.isRequired"\
+                  ng-readonly="$mdMentionCtrl.isReadonly"\
                   ng-minlength="inputMinlength"\
                   ng-maxlength="inputMaxlength"\
-                  ng-disabled="$mdAutocompleteCtrl.isDisabled"\
-                  ng-model="$mdAutocompleteCtrl.scope.mentionText"\
+                  ng-disabled="$mdMentionCtrl.isDisabled"\
+                  ng-model="$mdMentionCtrl.scope.mentionText"\
                   ng-model-options="{ allowInvalid: true }"\
-                  ng-keydown="$mdAutocompleteCtrl.keydown($event)"\
-                  ng-blur="$mdAutocompleteCtrl.blur($event)"\
-                  ng-focus="$mdAutocompleteCtrl.focus($event)"\
-                  aria-owns="ul-{{$mdAutocompleteCtrl.id}}"\
+                  ng-keydown="$mdMentionCtrl.keydown($event)"\
+                  ng-blur="$mdMentionCtrl.blur($event)"\
+                  ng-focus="$mdMentionCtrl.focus($event)"\
+                  aria-owns="ul-{{$mdMentionCtrl.id}}"\
                   aria-label="{{floatingLabel}}"\
                   aria-autocomplete="list"\
                   role="combobox"\
                   aria-haspopup="true"\
                   aria-activedescendant=""\
-                  aria-expanded="{{!$mdAutocompleteCtrl.hidden}}"/>\
-              <div md-autocomplete-parent-scope md-autocomplete-replace>' + leftover + '</div>\
+                  aria-expanded="{{!$mdMentionCtrl.hidden}}"/>\
+              <div md-mention-parent-scope md-mention-replace>' + leftover + '</div>\
             </md-input-container>';
         } else {
           return '\
             <input type="search"\
                 ' + (tabindex != null ? 'tabindex="' + tabindex + '"' : '') + '\
-                id="{{ inputId || \'input-\' + $mdAutocompleteCtrl.id }}"\
+                id="{{ inputId || \'input-\' + $mdMentionCtrl.id }}"\
                 name="{{inputName}}"\
                 ng-if="!floatingLabel"\
                 autocomplete="off"\
-                ng-required="$mdAutocompleteCtrl.isRequired"\
-                ng-disabled="$mdAutocompleteCtrl.isDisabled"\
-                ng-readonly="$mdAutocompleteCtrl.isReadonly"\
-                ng-model="$mdAutocompleteCtrl.scope.mentionText"\
-                ng-keydown="$mdAutocompleteCtrl.keydown($event)"\
-                ng-keypress="$mdAutocompleteCtrl.keypress($event)"\
-                ng-blur="$mdAutocompleteCtrl.blur($event)"\
-                ng-focus="$mdAutocompleteCtrl.focus($event)"\
+                ng-required="$mdMentionCtrl.isRequired"\
+                ng-disabled="$mdMentionCtrl.isDisabled"\
+                ng-readonly="$mdMentionCtrl.isReadonly"\
+                ng-model="$mdMentionCtrl.scope.mentionText"\
+                ng-keydown="$mdMentionCtrl.keydown($event)"\
+                ng-keypress="$mdMentionCtrl.keypress($event)"\
+                ng-blur="$mdMentionCtrl.blur($event)"\
+                ng-focus="$mdMentionCtrl.focus($event)"\
                 placeholder="{{placeholder}}"\
-                aria-owns="ul-{{$mdAutocompleteCtrl.id}}"\
+                aria-owns="ul-{{$mdMentionCtrl.id}}"\
                 aria-label="{{placeholder}}"\
                 aria-autocomplete="list"\
                 role="combobox"\
                 aria-haspopup="true"\
                 aria-activedescendant=""\
-                aria-expanded="{{!$mdAutocompleteCtrl.hidden}}"/>';
+                aria-expanded="{{!$mdMentionCtrl.hidden}}"/>';
         }
       }
 
@@ -401,8 +412,8 @@ function MdMention ($$mdSvgRegistry) {
               'type="button" ' +
               'aria-label="Post" ' +
               'tabindex="-1" ' +
-              'ng-if="true || (clearButton && $mdAutocompleteCtrl.scope.searchText && !$mdAutocompleteCtrl.isDisabled)" ' +
-              'ng-click="$mdAutocompleteCtrl.announceComplete()">' +
+              'ng-if="true || (clearButton && $mdMentionCtrl.scope.searchText && !$mdMentionCtrl.isDisabled)" ' +
+              'ng-click="$mdMentionCtrl.announceComplete()">' +
             '<md-icon>send</md-icon>' +
           '</button>';
         }
