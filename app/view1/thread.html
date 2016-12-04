@@ -1,0 +1,15 @@
+<div ng-if="! message">
+	Select a message to view it here
+</div>
+<div ng-if="message">
+Message detail for {{message.subject}}
+<md-divider></md-divider>
+<md-items>
+	<md-item-list ng-repeat="t in thread" id="anchor{{t.id}}">
+	<div md-whiteframe="2" style="margin:10px; padding: 10px">
+	{{t.id}}: If the label attribute is not specified, then an optional tag can be used to specify more complex tab header markup. If neither the label nor the md-tab-label are specified, then the nested markup of the  is used as the tab header markup.
+
+Please note that if you use your content MUST be wrapped in the tag. This is to define a clear separation between the tab content and the tab label.
+	</div>
+	</md-item-list>
+</div>

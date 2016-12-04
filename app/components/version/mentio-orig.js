@@ -16,6 +16,7 @@ angular.module('mentio', [])
                 requireLeadingSpace: '=mentioRequireLeadingSpace',
                 selectNotFound: '=mentioSelectNotFound',
                 trimTerm: '=mentioTrimTerm',
+                
                 ngModel: '='
             },
             controller: ["$scope", "$timeout", "$attrs", function($scope, $timeout, $attrs) {
@@ -239,6 +240,11 @@ angular.module('mentio', [])
                             if (event.which === 37 || event.which === 39) {
                                 event.preventDefault();
                              }
+                        } else {
+                            if(event.which === 9 || event.which === 13) {
+                                //save and clear OR new line and continue
+
+                            }
                         }
                         console.log('event: ' + event.which); // THIS IS WHERE WE ACCEPT THE ENTERKEY
                     }
@@ -522,7 +528,6 @@ angular.module('mentio', [])
                 };
 
                 $scope.isVisible = function () {
-                    return $scope.visible;
                 };
 
                 $scope.showMenu = function () {

@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<!--[if lt IE 7]>      <html lang="en" ng-app="MyApp" class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html lang="en" ng-app="MyApp" class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html lang="en" ng-app="MyApp" class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!--> <html lang="en" ng-app="MyApp" class="no-js"> <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>My AngularJS App</title>
+  <meta name="description" content="">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.gitcdn.link/cdn/angular/bower-material/v1.1.1/angular-material.css">
+  <script src="bower_components/html5-boilerplate/dist/js/vendor/modernizr-2.8.3.min.js"></script>
+    <link rel="stylesheet" href="bower_components/tribute/dist/tribute.css" />
+  <style>
+    md-mention input:not(.md-input) {
+      font-size: 14px;
+      box-sizing: border-box;
+      border: none;
+      box-shadow: none;
+      outline: none;
+      background: transparent;
+      width: 100%;
+      padding: 0 15px;
+      line-height: 40px;
+      height: 40px;
+    }
+
+    md-mention md-autocomplete-wrap {
+      display: -webkit-box;
+      display: -webkit-flex;
+      display: flex;
+      -webkit-box-orient: horizontal;
+      -webkit-box-direction: normal;
+      -webkit-flex-direction: row;
+      flex-direction: row;
+      box-sizing: border-box;
+      position: relative;
+      overflow: visible;
+      height: 40px;
+    }
+
+    md-mention {
+          border-radius: 2px;
+          display: block;
+          height: 40px;
+          position: relative;
+          overflow: visible;
+          min-width: 190px;
+          background: rgb(255,255,255);
+    }
+
+    .mention-custom-template li {
+          border-bottom: 1px solid #ccc;
+          height: auto;
+          padding-top: 8px;
+          padding-bottom: 8px;
+          white-space: normal; }
+    .mention-custom-template li:last-child {
+        border-bottom-width: 0; }
+    .mention-custom-template .item-title,
+    .mention-custom-template .item-metadata {
+      display: block;
+      line-height: 2; }
+    .mention-custom-template .item-title img {
+      height: 18px;
+      width: 18px; }
+
+  </style>
+</head>
+<body>
+<div ng-controller="AppCtrl" ng-cloak="" class="buttondemoBasicUsage" ng-app="MyApp">
+ <div ng-controller="DemoCtrl as ctrl" layout="column" ng-cloak>
+    <md-content class="md-padding">
+      <form ng-submit="$event.preventDefault()">
+        <p>By default, <code>md-autocomplete</code> will cache results when performing a query.  After the initial call is performed, it will use the cached results to eliminate unnecessary server requests or lookup logic. This can be disabled above.</p>
+        <p>By default, <code>md-autocomplete</code> will cache results when performing a query.  After the initial call is performed, it will use the cached results to eliminate unnecessary server requests or lookup logic. This can be disabled above.</p>
+        <p>Use <code>md-mention</code> to search for matches from local or remote data sources.</p>
+        <md-autocomplete ng-disabled="ctrl.isDisabled"
+            md-no-cache="ctrl.noCache"
+            md-selected-item="ctrl.selectedItem"
+            md-search-text-change="ctrl.searchTextChange(ctrl.searchText)"
+            md-search-text="ctrl.searchText"
+            md-selected-item-change="ctrl.selectedItemChange(item)"
+            md-items="item in ctrl.querySearch(ctrl.searchText)"
+            md-item-text="item.email"
+            md-min-length="0"
+            ng-model="mentionable"
+            placeholder="What is your favorite US state?">
+        </md-autocomplete>
+
+        <md-mention
+            ng-disabled="ctrl.isDisabled"
+            md-no-cache="ctrl.noCache"
+            md-selected-item="ctrl.selectedItem"
+            md-search-text-change="ctrl.searchTextChange(ctrl.searchText)"
+            md-search-text="ctrl.searchText"
+            md-selected-item-change="ctrl.selectedItemChange(item)"
+            md-items="item in queryS(ctrl.searchText)"
+            md-item-text="'@'+item.login.username"
+            md-min-length="0"
+            ng-model="post"
+            md-on-complete="ctrl.tweet(post)"
+            md-menu-class="mention-custom-template"
+            placeholder="Whats on your mind?">
+            <md-item-template>
+              <md-list-item class="md-2-line">
+              <img ng-src="{{item.picture.thumbnail}}" class="md-avatar" alt="{{item.login.username}}" />
+              <div class="md-list-item-text">
+                <h3>{{item.name.first}} {{item.name.last}}</h3>
+                <p>{{item.email}}</p>
+              </div>
+            </md-item-template>
+          <md-not-found>
+            No users matching "{{ctrl.searchText}}" were found.
+          </md-not-found>
+        </md-mention>
+
+        key: <div>{{ctrl.searchText}}</div>
+        text: <div>{{post.text}}</div>
+        html: <div>{{post.html}}</div>
+        mentions: <ul><li ng-repeat="u in post.mentions">{{u.email}}</li></ul>
+        <br/>
+        <md-checkbox ng-model="ctrl.simulateQuery">Simulate query for results?</md-checkbox>
+        <md-checkbox ng-model="ctrl.noCache">Disable caching of queries?</md-checkbox>
+        <md-checkbox ng-model="ctrl.isDisabled">Disable the input?</md-checkbox>
+
+      </form>
+      <div>
+            <input type="text" mentio="true"
+                    mentio-typed-text="typedTerm" 
+                    mentio-search="ctrl.querys(term)"
+                    mentio-items="ctrl.states | filter:label:typedTerm" 
+                    ng-model="myval" ng-keypress="ctrl.submit($event)" style="width:100%; padding: 5px;"/>
+      </div>
+      <hr/>
+      <div ng-controller="TributeCtrl as ct">
+        <input type="text" angular-tribute="true"
+         values="people"
+         options="tributeConfig"
+         ng-model="chatter"
+         on-replace="tributeOnReplaced"
+         on-no-match="tributeOnNoMatch" style="width:100%;padding:5px"/>
+
+        <span>{{chatter}}</span>
+      </div>
+    </md-content>
+</div>
+
+  <!-- In production use:
+  <script src="//ajax.googleapis.com/ajax/libs/angularjs/x.x.x/angular.min.js"></script>
+  -->
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular-animate.min.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular-route.min.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular-aria.min.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular-messages.min.js"></script>
+  <script src="https://cdn.gitcdn.link/cdn/angular/bower-material/v1.1.1/angular-material.js"></script>
+  <script src="components/version/mention.js"></script>
+  <script src="components/version/mentio-orig.js"></script>
+  <script src="components/version/tribute.js"></script>
+  <script src="bower_components/tribute/dist/tribute.js"></script> 
+  <script src="bower_components/angular-ui-router/release/angular-ui-router.js"></script> 
+  <script src="components/version/version.js"></script>
+   <script src="components/version/version-directive.js"></script>
+  <script src="components/version/interpolate-filter.js"></script>
+
+  <script>
+
+   angular.module('MyApp',['ngMaterial', 'ngMessages', 'maildesk.components.mention', 'myApp.version', 'mentio'])
+
+.controller('AppCtrl', function($scope) {
+  $scope.title1 = 'Button';
+  $scope.title4 = 'Warn';
+  $scope.isDisabled = true;
+  $scope.post = {
+    text: '',
+    html: '',
+    mentions: []
+  };
+
+  $scope.googleUrl = 'http://google.com';
+
+}).controller('DemoCtrl', DemoCtrl)
+ .controller('TributeCtrl', TributeCtrl)
+ .directive('angularTribute', ['$timeout', function($timeout) {
+     return {
+	restrict: 'A',
+	  scope: {
+	    values: '=',
+	    options: '=',
+	    onReplaced: '&',
+	    onNoMatch: '&'
+	  },
+	  controller: function($scope) {
+	    this.$onDestroy = () => {
+	      $scope.tribute.hideMenu();
+	    };
+	  },
+	  compile($element, $attrs) {
+	    return ($scope, $element, $attrs) => {
+	      if (typeof $scope.options === 'array') {
+		$scope.tribute = new Tribute({
+		  collection: $scope.options
+		});
+	      } else {
+		$scope.tribute = new Tribute(angular.merge({
+		  values: $scope.values
+		}, ($scope.options || {})));
+	      }
+
+	      $scope.tribute.attach($element[0]);
+
+	      $element[0].addEventListener("tribute-replaced", (e) => {
+		if (typeof $scope.onReplaced !== 'function') return;
+		$timeout($scope.onReplaced.apply(this));
+	      });
+	      $element[0].addEventListener("tribute-no-match", (e) => {
+		if (typeof $scope.onNoMatch !== 'function') return;
+		$timeout($scope.onNoMatch.apply(this));
+	      });
+	    }
+	  }
+     };
+ }]);
+
+  function TributeCtrl($scope) {
+   $scope.chatter = '';
+
+      $scope.people = [
+    { name: 'Adam',      email: 'adam@email.com' },
+    { name: 'Amalie',    email: 'amalie@email.com', },
+    { name: 'Estefanía', email: 'estefania@email.com', },
+    { name: 'Adrian',    email: 'adrian@email.com', },
+    { name: 'Wladimir',  email: 'wladimir@email.com', },
+    { name: 'Samantha',  email: 'samantha@email.com', },
+    { name: 'Nicole',    email: 'nicole@email.com', },
+    { name: 'Natasha',   email: 'natasha@email.com', },
+    { name: 'Michael',   email: 'michael@email.com', },
+    { name: 'Nicolás',   email: 'nicole@email.com', }
+  ];
+
+  $scope.tributeConfig = {
+    lookup: 'name',
+    fillAttr: 'name'
+  }
+
+  $scope.tributeOnReplaced = function () {
+    console.log('text replaced!');
+  };
+
+  $scope.tributeOnNoMatch = function () {
+    console.log('no match found in collection!');
+  };
+  }
+
+  function DemoCtrl ($scope, $timeout, $q, $log, $http) {
+    var self = this;
+
+    self.simulateQuery = false;
+    self.isDisabled    = false;
+    $scope.myval = 'test';
+    $scope.queryS = queryRemoteSearch;
+
+    // list of `state` value/display objects
+    self.states        = loadAll();
+    self.querySearch   = queryRemoteSearch;
+    self.querys = querys;
+    self.selectedItemChange = selectedItemChange;
+    self.searchTextChange   = searchTextChange;
+    self.submit = submit;
+
+    self.newState = newState;
+    self.tweet = function(post) {
+      alert('tweet:' + post.text);
+      $scope.mentionable = '';
+      $scope.mentionText = '';
+      $scope.post = {text: '', html: '', mentions: []};
+    }
+
+    function submit(event) {
+      if(event.keyCode === 13) {
+	console.log('Submitting for save');
+	$scope.myval = '';
+      }
+    }
+
+    function newState(state) {
+      alert("Sorry! You'll need to create a Constitution for " + state + " first!");
+    }
+
+    // ******************************
+    // Internal methods
+    // ******************************
+    function querys(term) {
+       self.states = [{ value: 'california', label: 'Cal', display: 'Cal'}];
+    }
+
+    function queryRemoteSearch (query) {
+      var deferred = $q.defer();
+
+      $http.get('https://randomuser.me/api/?results=5').then(
+        function(response) {
+            return deferred.resolve(response.data.results);
+        }, 
+        function(response) {
+            console.log('error: ' + response.statusText);
+            return deferred.reject([]);
+        });
+      return deferred.promise;
+    }
+    /**
+     * Search for states... use $timeout to simulate
+     * remote dataservice call.
+     */
+    function querySearch (query) {
+      var results = query ? self.states.filter( createFilterFor(query) ) : self.states,
+          deferred;
+      if (self.simulateQuery) {
+        deferred = $q.defer();
+        $timeout(function () { deferred.resolve( results ); }, Math.random() * 1000, false);
+        return deferred.promise;
+      } else {
+        return results;
+      }
+    }
+
+    function searchTextChange(text) {
+      $log.info('Text changed to ' + text);
+    }
+
+    function selectedItemChange(item) {
+      $log.info('Item changed to ' + JSON.stringify(item));
+    }
+
+    /**
+     * Build `states` list of key/value pairs
+     */
+    function loadAll() {
+      var allStates = 'Alabama, Alaska, Arizona, Arkansas, California, Colorado, Connecticut, Delaware,\
+              Florida, Georgia, Hawaii, Idaho, Illinois, Indiana, Iowa, Kansas, Kentucky, Louisiana,\
+              Maine, Maryland, Massachusetts, Michigan, Minnesota, Mississippi, Missouri, Montana,\
+              Nebraska, Nevada, New Hampshire, New Jersey, New Mexico, New York, North Carolina,\
+              North Dakota, Ohio, Oklahoma, Oregon, Pennsylvania, Rhode Island, South Carolina,\
+              South Dakota, Tennessee, Texas, Utah, Vermont, Virginia, Washington, West Virginia,\
+              Wisconsin, Wyoming';
+
+      return allStates.split(/, +/g).map( function (state) {
+        return {
+          value: state.toLowerCase(),
+          label: state,
+          display: state
+        };
+      });
+    }
+
+    /**
+     * Create filter function for a query string
+     */
+    function createFilterFor(query) {
+      var lowercaseQuery = angular.lowercase(query);
+
+      return function filterFn(state) {
+        return (state.value.indexOf(lowercaseQuery) === 0);
+      };
+
+    }
+  }
+
+
+    </script>
+</body>
+</html>

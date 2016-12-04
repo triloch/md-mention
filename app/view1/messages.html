@@ -1,0 +1,7 @@
+<md-list>
+	<md-list-item ng-repeat="item in messages">
+		<span>{{item.id}}</span>
+		<span>{{item.subject}}</span>
+		<a ng-href="#/inbox/message/{{item.id}}">View</a>
+	</md-list-item>
+</md-list>
